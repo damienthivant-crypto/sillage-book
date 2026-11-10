@@ -1,6 +1,6 @@
 /* Sillage Book — fonctionnement hors connexion.
    Changer VERSION à chaque mise à jour de l'app. */
-var VERSION='sb-3.1.0';
+var VERSION='sb-3.2.0';
 var FILES=['./','index.html','chart.umd.min.js','fonts.css','manifest.webmanifest',
   'icons/icon-192.png','icons/icon-512.png','icons/apple-touch-icon.png','icons/favicon-32.png','icons/favicon-64.png',
   'fonts/manrope-latin-400-normal.woff2','fonts/manrope-latin-500-normal.woff2','fonts/manrope-latin-600-normal.woff2',

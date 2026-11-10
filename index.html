@@ -827,9 +827,9 @@ label.lbl-sl{color:var(--CL)!important}label.lbl-tp{color:var(--CP)!important}
       <p class="data-intro">Ton journal s'enregistre tout seul sur cet appareil, à chaque modification. La <b>sauvegarde</b> crée un fichier complet (trades, stratégies, notes et images, réglages) : sur iPhone, choisis « Enregistrer dans Fichiers » puis iCloud Drive ; sur Mac, il arrive dans Téléchargements. <b>Restaurer</b> remplace le journal de cet appareil par celui du fichier.</p>
       <div class="sync-card">
         <div class="sync-card-t">Synchro Mac ↔ iPhone</div>
-        <p class="data-intro">Les deux appareils partagent un fichier <b>sillage-book-sync.json</b> dans iCloud Drive. La synchro <b>fusionne</b> : si tu ajoutes un trade sur l'iPhone et en supprimes un autre sur le Mac, les deux changements sont appliqués. Si le même trade a été modifié des deux côtés, la modification la plus récente gagne.</p>
+        <p class="data-intro">Les deux appareils partagent un dossier <b>Sillage Book</b> dans iCloud Drive. Le Mac (Chrome) synchronise tout seul ; l'iPhone récupère et envoie en deux touches. La synchro <b>fusionne</b> : si tu ajoutes un trade sur l'iPhone et en supprimes un autre sur le Mac, les deux changements sont appliqués. Si le même trade a été modifié des deux côtés, la modification la plus récente gagne.</p>
         <div class="data-stat" id="sync-stat"></div>
-        <div class="data-btns"><button type="button" class="btn-save" onclick="syncNow(false)">Synchroniser</button><button type="button" class="btn-sm" id="sync-forget" onclick="syncForget()" style="display:none">Changer de fichier</button></div>
+        <div class="data-btns"><button type="button" class="btn-save" onclick="syncNow(false)">Synchroniser</button><button type="button" class="btn-sm" id="sync-forget" onclick="syncForget()" style="display:none">Changer de dossier</button></div>
       </div>
       <div class="data-stat" id="data-stat"></div>
       <div class="data-btns">
@@ -919,7 +919,7 @@ label.lbl-sl{color:var(--CL)!important}label.lbl-tp{color:var(--CP)!important}
       </button>
     </div>
 
-    <div class="plus-ver">Sillage Book · version 3.1</div>
+    <div class="plus-ver">Sillage Book · version 3.2</div>
   </div>
 </main>
 </div>
@@ -941,15 +941,14 @@ label.lbl-sl{color:var(--CL)!important}label.lbl-tp{color:var(--CP)!important}
   <div class="ask sync-box">
     <div class="sync-ttl" id="sync-ttl">Synchroniser Mac ↔ iPhone</div>
     <div id="sync-fs">
-      <p class="sync-p">Choisis le fichier <b>sillage-book-sync.json</b> dans iCloud Drive. L'app en garde l'accès : ensuite la synchro se fait toute seule à l'ouverture et à chaque modification.</p>
-      <button type="button" class="sync-btn main" onclick="fsPick(false)">Choisir le fichier existant</button>
-      <button type="button" class="sync-btn" onclick="fsPick(true)">Créer le fichier (première fois)</button>
+      <p class="sync-p">Choisis un dossier <b>Sillage Book</b> dans iCloud Drive (crée-le avec « Nouveau dossier » si besoin). Le Mac y tient le fichier de synchro à jour et <b>ramasse tout seul</b> les envois de l'iPhone, à l'ouverture, à chaque modification et toutes les minutes.</p>
+      <button type="button" class="sync-btn main" onclick="fsPick()">Choisir le dossier Sillage Book</button>
     </div>
     <div id="sync-man">
       <p class="sync-p">Sur iPhone et dans Safari, Apple ne laisse pas l'app écrire seule dans iCloud Drive : deux touches à chaque synchro.</p>
-      <button type="button" class="sync-btn main" onclick="syncPull()"><span class="sync-n">1</span>Récupérer — choisis sillage-book-sync.json</button>
-      <button type="button" class="sync-btn" id="sync-step2" onclick="syncPush()"><span class="sync-n">2</span>Envoyer — enregistre-le au même endroit</button>
-      <p class="sync-hint">Première fois ? Passe directement à l'étape 2. Sur iPhone : « Enregistrer dans Fichiers » → iCloud Drive → <b>Remplacer</b>.</p>
+      <button type="button" class="sync-btn main" onclick="syncPull()"><span class="sync-n">1</span>Récupérer — ouvre sillage-book-sync.json</button>
+      <button type="button" class="sync-btn" id="sync-step2" onclick="syncPush()"><span class="sync-n">2</span>Envoyer — dépose-le dans le dossier</button>
+      <p class="sync-hint">Tout se passe dans le dossier <b>Sillage Book</b> d'iCloud Drive. <b>1</b> en ouvrant l'app pour recevoir les trades du Mac. <b>2</b> quand tu as fini : « Enregistrer dans Fichiers » → dossier Sillage Book → Enregistrer. Rien à remplacer : chaque envoi est un nouveau fichier, le Mac les ramasse et fait le ménage.</p>
       <div class="sync-res" id="sync-res" aria-live="polite"></div>
     </div>
     <button type="button" class="ask-no sync-close" onclick="closeSyncSheet()">Fermer</button>
@@ -3018,7 +3017,7 @@ function lastBackup(){try{var v=localStorage.getItem('tj-last-backup');return v?
 function agoTxt(d){if(!d)return 'jamais';var days=Math.floor((Date.now()-d.getTime())/864e5);if(days<=0)return 'aujourd\'hui';if(days===1)return 'hier';return 'il y a '+days+' j';}
 function agoTxt2(d){if(!d)return 'jamais';var m=Math.floor((Date.now()-d.getTime())/6e4);if(m<1)return 'à l\'instant';if(m<60)return 'il y a '+m+' min';var h=Math.floor(m/60);if(h<24)return 'il y a '+h+' h';return agoTxt(d);}
 function backupStale(){var d=lastBackup();return trades.length>0&&(!d||(Date.now()-d.getTime())>7*864e5);}
-function renderDataStat(){var d=lastBackup(),stale=backupStale();var el=document.getElementById('data-stat');if(el)el.innerHTML='<span><b>'+trades.length+'</b> trades</span><span><b>'+strategies.length+'</b> stratégies</span><span'+(stale?' class="warn"':'')+'>Dernière sauvegarde : '+agoTxt(d)+'</span>';var sy=document.getElementById('sync-stat');if(sy){var ls=lastSync();sy.innerHTML='Dernière synchro : <b>'+agoTxt2(ls)+'</b>'+(hasFsAccess()?(_syncHandle?' · automatique ('+(_syncHandle.name||SYNC_NAME)+')':' · pas encore de fichier choisi'):' · manuelle (Safari / iPhone)');var fg=document.getElementById('sync-forget');if(fg)fg.style.display=(hasFsAccess()&&_syncHandle)?'':'none';}var cs=document.getElementById('plus-cnt-sync');if(cs)cs.textContent=agoTxt2(lastSync());var c=document.getElementById('plus-cnt-backup');if(c){c.textContent=agoTxt(d);c.classList.toggle('warn',stale);}}
+function renderDataStat(){var d=lastBackup(),stale=backupStale();var el=document.getElementById('data-stat');if(el)el.innerHTML='<span><b>'+trades.length+'</b> trades</span><span><b>'+strategies.length+'</b> stratégies</span><span'+(stale?' class="warn"':'')+'>Dernière sauvegarde : '+agoTxt(d)+'</span>';var sy=document.getElementById('sync-stat');if(sy){var ls=lastSync();sy.innerHTML='Dernière synchro : <b>'+agoTxt2(ls)+'</b>'+(hasFsAccess()?(_syncHandle?' · automatique ('+(_syncHandle.name||SYNC_NAME)+')':' · pas encore de dossier choisi'):' · manuelle (Safari / iPhone)');var fg=document.getElementById('sync-forget');if(fg)fg.style.display=(hasFsAccess()&&_syncHandle)?'':'none';}var cs=document.getElementById('plus-cnt-sync');if(cs)cs.textContent=agoTxt2(lastSync());var c=document.getElementById('plus-cnt-backup');if(c){c.textContent=agoTxt(d);c.classList.toggle('warn',stale);}}
 function buildBackup(){var prefs={};try{for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(_PREF_RE.test(k)&&k!=='tj-last-backup')prefs[k]=localStorage.getItem(k);}}catch(e){}return {app:'sillage-book',format:1,exportedAt:new Date().toISOString(),counts:{trades:trades.length,strategies:strategies.length},journal:journalSnapshot(),prefs:prefs};}
 function _dl(blob,name){var u=URL.createObjectURL(blob);var a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},1500);}
 function _markBackup(){try{localStorage.setItem('tj-last-backup',new Date().toISOString());}catch(e){}renderDataStat();}
@@ -3073,22 +3072,33 @@ function afterMerge(res){
 function syncMsg(res){if(!res)return 'Synchro OK — fichier créé.';var s=res.stats,p=[];if(s.add)p.push(s.add+' trade'+(s.add>1?'s':'')+' ajouté'+(s.add>1?'s':''));if(s.upd)p.push(s.upd+' modifié'+(s.upd>1?'s':''));if(s.del)p.push(s.del+' supprimé'+(s.del>1?'s':''));return 'Synchro OK'+(p.length?' — '+p.join(', '):' — rien de nouveau')+'.';}
 function lastSync(){try{var v=localStorage.getItem('tj-last-sync');return v?new Date(v):null;}catch(e){return null;}}
 function _markSync(){try{localStorage.setItem('tj-last-sync',new Date().toISOString());}catch(e){}renderDataStat();}
-var hasFsAccess=function(){return typeof window.showOpenFilePicker==='function'&&typeof window.showSaveFilePicker==='function';};
+var hasFsAccess=function(){return typeof window.showDirectoryPicker==='function';};
 
-/* Mode automatique (Chrome / Edge sur Mac) : l'app garde l'accès au fichier choisi */
-function _getHandle(){if(_syncHandle)return Promise.resolve(_syncHandle);return dbGet('sync-handle').then(function(h){_syncHandle=h||null;return _syncHandle;}).catch(function(){return null;});}
+/* Mode automatique (Chrome sur Mac) : l'app garde l'accès à un DOSSIER iCloud.
+   Le Mac y écrit sillage-book-sync.json, et ramasse tous les fichiers déposés par l'iPhone
+   (l'iPhone ne sait pas remplacer un fichier, il en crée un nouveau à chaque envoi). */
+function _getHandle(){if(_syncHandle)return Promise.resolve(_syncHandle);return dbGet('sync-handle').then(function(h){_syncHandle=(h&&h.kind==='directory')?h:null;return _syncHandle;}).catch(function(){return null;});}
 function _setHandle(h){_syncHandle=h;return dbSet('sync-handle',h).catch(function(){});}
-function _fsSync(h,interactive){
-  return Promise.resolve(h.queryPermission?h.queryPermission({mode:'readwrite'}):'granted').then(function(p){
-    if(p==='granted')return p;if(!interactive)return 'skip';return h.requestPermission({mode:'readwrite'});
-  }).then(function(p){
-    if(p==='skip')return 'skip';if(p!=='granted')throw new Error('accès au fichier refusé');
-    var res=null;
-    return h.getFile().then(function(f){return f.text();}).then(function(txt){
-      if(txt&&txt.trim()){res=mergeSync(JSON.parse(txt));return afterMerge(res);}
-    }).then(function(){return h.createWritable();}).then(function(w){return w.write(JSON.stringify(buildSyncFile())).then(function(){return w.close();});})
-    .then(saveSyncMeta).then(function(){_markSync();return res||'created';});
-  });}
+async function _fsSync(dir,interactive){
+  var p=dir.queryPermission?await dir.queryPermission({mode:'readwrite'}):'granted';
+  if(p!=='granted'){if(!interactive)return 'skip';p=await dir.requestPermission({mode:'readwrite'});if(p!=='granted')throw new Error('accès au dossier refusé');}
+  var tot={add:0,upd:0,del:0},merged=false,prefChanged=false,extras=[];
+  for await (const ent of dir.values()){
+    var name=ent.name;
+    if(ent.kind!=='file'||!/^sillage-book.*\.json$/i.test(name))continue;
+    try{
+      var txt=await (await ent.getFile()).text();if(!txt.trim())continue;
+      var r=JSON.parse(txt);if(!r||r.kind!=='sync')continue;
+      var res=mergeSync(r);merged=true;tot.add+=res.stats.add;tot.upd+=res.stats.upd;tot.del+=res.stats.del;if(res.prefChanged)prefChanged=true;
+      if(name!==SYNC_NAME)extras.push(name);
+    }catch(e){/* fichier pas encore téléchargé par iCloud : on réessaiera */}
+  }
+  if(merged)await afterMerge({prefChanged:prefChanged});
+  var fh=await dir.getFileHandle(SYNC_NAME,{create:true});var w=await fh.createWritable();await w.write(JSON.stringify(buildSyncFile()));await w.close();
+  for(const n of extras){try{await dir.removeEntry(n);}catch(e){}}
+  await saveSyncMeta();_markSync();
+  return {stats:tot,picked:extras.length};}
+function _fsMsg(res){var m=syncMsg(res);if(res&&res.picked)m=m.replace('Synchro OK','Synchro OK — '+res.picked+' envoi'+(res.picked>1?'s':'')+' iPhone intégré'+(res.picked>1?'s':''));return m;}
 function syncNow(silent){
   if(_syncBusy||!dataReady)return Promise.resolve();
   if(!hasFsAccess()){if(!silent)openSyncSheet();return Promise.resolve();}
@@ -3097,20 +3107,20 @@ function syncNow(silent){
     if(!h){if(!silent)openSyncSheet();return 'skip';}
     return _fsSync(h,!silent);
   }).then(function(res){
-    if(res==='skip')return;
-    if(!silent||(res&&res.stats&&(res.stats.add||res.stats.upd||res.stats.del)))notify(res==='created'?'Synchro OK — fichier à jour.':syncMsg(res));
+    if(res==='skip'||!res)return;
+    var st=res.stats;if(!silent||st.add||st.upd||st.del)notify(_fsMsg(res));
   }).catch(function(e){if(e&&e.name==='AbortError')return;if(!silent)notify('Synchro impossible : '+(e&&e.message||e));})
   .then(function(){_syncBusy=false;});}
-function fsPick(create){
-  var opts={types:[{description:'Synchro Sillage Book',accept:{'application/json':['.json']}}]};
-  var pr=create?window.showSaveFilePicker(Object.assign({suggestedName:SYNC_NAME},opts)):window.showOpenFilePicker(opts).then(function(a){return a[0];});
-  return pr.then(function(h){closeSyncSheet();_syncBusy=true;return _setHandle(h).then(function(){return _fsSync(h,true);});})
-  .then(function(res){notify(res==='created'?'Synchro activée — fichier créé. Choisis-le sur ton autre appareil.':syncMsg(res));})
+function fsPick(){
+  window.showDirectoryPicker({id:'sillage-sync',mode:'readwrite'}).then(function(h){closeSyncSheet();_syncBusy=true;return _setHandle(h).then(function(){return _fsSync(h,true);});})
+  .then(function(res){if(res&&res!=='skip')notify('Synchro activée sur le dossier « '+(_syncHandle&&_syncHandle.name||'')+' ». '+_fsMsg(res));renderDataStat();})
   .catch(function(e){if(e&&e.name==='AbortError')return;notify('Synchro impossible : '+(e&&e.message||e));})
   .then(function(){_syncBusy=false;});}
-function syncForget(){_syncHandle=null;dbSet('sync-handle',null).catch(function(){});renderDataStat();notify('Fichier de synchro oublié. Choisis-en un nouveau au prochain « Synchroniser ».');}
+function syncForget(){_syncHandle=null;dbSet('sync-handle',null).catch(function(){});renderDataStat();notify('Dossier de synchro oublié. Choisis-en un nouveau au prochain « Synchroniser ».');}
 function scheduleAutoSync(){if(!hasFsAccess()||!_syncHandle)return;clearTimeout(_autoSyncT);_autoSyncT=setTimeout(function(){syncNow(true);},4000);}
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&_syncHandle&&Date.now()-_lastAuto>30000){_lastAuto=Date.now();syncNow(true);}});
+/* Le Mac regarde le dossier toutes les minutes : les envois de l'iPhone arrivent sans rien faire */
+setInterval(function(){if(document.visibilityState==='visible'&&_syncHandle)syncNow(true);},60000);
 
 /* Mode manuel (Safari, iPhone) : 1. Récupérer  2. Envoyer */
 function openSyncSheet(){var bg=document.getElementById('sync-bg');if(!bg)return;var fs=hasFsAccess();
@@ -3120,13 +3130,16 @@ function openSyncSheet(){var bg=document.getElementById('sync-bg');if(!bg)return
 function closeSyncSheet(){var bg=document.getElementById('sync-bg');if(bg)bg.classList.remove('on');}
 function syncPull(){var i=document.getElementById('sync-input');i.value='';i.click();}
 function syncPullFile(inp){var f=inp.files&&inp.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var out=document.getElementById('sync-res');
-  try{var r=JSON.parse(rd.result);persistNow().then(function(){var res=mergeSync(r);return afterMerge(res).then(function(){out.className='sync-res ok';out.textContent=syncMsg(res)+' Maintenant, envoie la version fusionnée (étape 2).';document.getElementById('sync-step2').classList.add('hot');});}).catch(function(e){out.className='sync-res err';out.textContent='Impossible : '+(e&&e.message||e);});}
+  try{var r=JSON.parse(rd.result);persistNow().then(function(){var res=mergeSync(r);return afterMerge(res).then(function(){out.className='sync-res ok';out.textContent=syncMsg(res)+' Quand tu auras fini, fais l\'étape 2.';document.getElementById('sync-step2').classList.add('hot');});}).catch(function(e){out.className='sync-res err';out.textContent='Impossible : '+(e&&e.message||e);});}
   catch(e){out.className='sync-res err';out.textContent='Fichier illisible : choisis '+SYNC_NAME+'.';}};rd.readAsText(f);}
-function syncPush(){persistNow().then(function(){var blob=new Blob([JSON.stringify(buildSyncFile())],{type:'application/json'});saveSyncMeta();var file=null;try{file=new File([blob],SYNC_NAME,{type:'application/json'});}catch(e){}
+function syncPush(){persistNow().then(function(){var blob=new Blob([JSON.stringify(buildSyncFile())],{type:'application/json'});saveSyncMeta();
+  var d=new Date(),z=function(n){return String(n).padStart(2,'0');};
+  var name='sillage-book-'+_deviceName().toLowerCase()+'_'+d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'_'+z(d.getHours())+'h'+z(d.getMinutes())+'m'+z(d.getSeconds())+'.json';
+  var file=null;try{file=new File([blob],name,{type:'application/json'});}catch(e){}
   var touch=window.matchMedia&&matchMedia('(pointer:coarse)').matches;
   var done=function(m){_markSync();closeSyncSheet();notify(m);};
-  if(touch&&file&&navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Synchro Sillage Book'}).then(function(){done('Envoyé. Remplace l\'ancien fichier dans iCloud Drive si on te le demande.');}).catch(function(e){if(e&&e.name==='AbortError')return;_dl(blob,SYNC_NAME);done('Fichier téléchargé.');});}
-  else{_dl(blob,SYNC_NAME);done('Fichier '+SYNC_NAME+' téléchargé : place-le dans iCloud Drive (remplace l\'ancien).');}});}
+  if(touch&&file&&navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Synchro Sillage Book'}).then(function(){done('Envoyé. Le Mac l\'intégrera tout seul.');}).catch(function(e){if(e&&e.name==='AbortError')return;_dl(blob,name);done('Fichier téléchargé : dépose-le dans le dossier Sillage Book d\'iCloud Drive.');});}
+  else{_dl(blob,name);done('Fichier téléchargé : dépose-le dans le dossier Sillage Book d\'iCloud Drive.');}});}
 
 function init(){loadSaved();loadMeta();loadChecklist();if(navigator.storage&&navigator.storage.persist)try{navigator.storage.persist();}catch(e){}loadJournal().then(function(found){if(!found){trades=[];strategies=[];catalysts=DEF_CATS.slice();setups=DEF_SETUPS.slice();}dataReady=true;_lastPrefs=_prefsSig();if(!_smLoaded){stampChanges();saveSyncMeta();}_init2();_getHandle().then(function(h){renderDataStat();if(h)syncNow(true);});if(backupStale())setTimeout(function(){notify('Dernière sauvegarde : '+agoTxt(lastBackup())+'. Pense à sauvegarder.');},1200);});}
 function _init2(){refreshStratSelects();buildPeriodBar();renderAll();renderPills('cat');renderPills('setup');document.getElementById('f-date').value=new Date().toISOString().slice(0,10);attachHovers();applyTheme();initRte();syncChecklist();renderCkSettings();refreshSegs();renderAccountsSettings();renderDataStat();}
