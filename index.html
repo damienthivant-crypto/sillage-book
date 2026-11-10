@@ -919,7 +919,7 @@ label.lbl-sl{color:var(--CL)!important}label.lbl-tp{color:var(--CP)!important}
       </button>
     </div>
 
-    <div class="plus-ver">Sillage Book · version 3.2</div>
+    <div class="plus-ver">Sillage Book · version 3.2.2</div>
   </div>
 </main>
 </div>
@@ -3615,7 +3615,9 @@ wait();
 <script>
 /* Hors connexion + mises à jour : l'app vérifie la nouvelle version au lancement */
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
-  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').then(function(reg){
+  var _hadCtl=!!navigator.serviceWorker.controller,_swRl=false;
+  navigator.serviceWorker.addEventListener('controllerchange',function(){if(!_hadCtl||_swRl)return;_swRl=true;var go=function(){location.reload();};if(typeof persistNow==='function')persistNow().then(go,go);else go();});
+  window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(function(reg){try{reg.update();}catch(e){}document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')try{reg.update();}catch(e){}});
     reg.addEventListener('updatefound',function(){var w=reg.installing;if(!w)return;w.addEventListener('statechange',function(){if(w.state==='installed'&&navigator.serviceWorker.controller){if(typeof notify==='function')notify('Nouvelle version installée — elle sera active à la prochaine ouverture.');}});});
   }).catch(function(){});});
 }
